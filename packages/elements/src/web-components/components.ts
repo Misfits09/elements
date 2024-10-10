@@ -16,6 +16,7 @@ export const ApiElement = createElementClass(API, {
   hideSecurityInfo: { type: 'boolean' },
   hideSchemas: { type: 'boolean' },
   hideInternal: { type: 'boolean' },
+  operationTitleAsURI: { type: 'boolean' },
   hideExport: { type: 'boolean' },
   logo: { type: 'string' },
   tryItCredentialsPolicy: { type: 'string' },

@@ -65,11 +65,13 @@ export function computeTagGroups<T extends GroupableNode>(serviceNode: ServiceNo
 interface ComputeAPITreeConfig {
   hideSchemas?: boolean;
   hideInternal?: boolean;
+  operationTitleAsURI?: boolean;
 }
 
 const defaultComputerAPITreeConfig = {
   hideSchemas: false,
   hideInternal: false,
+  operationTitleAsURI: false,
 };
 
 export const computeAPITree = (serviceNode: ServiceNode, config: ComputeAPITreeConfig = {}) => {
@@ -91,7 +93,14 @@ export const computeAPITree = (serviceNode: ServiceNode, config: ComputeAPITreeC
     });
 
     const { groups, ungrouped } = computeTagGroups<OperationNode>(serviceNode, NodeType.HttpOperation);
-    addTagGroupsToTree(groups, ungrouped, tree, NodeType.HttpOperation, mergedConfig.hideInternal);
+    addTagGroupsToTree(
+      groups,
+      ungrouped,
+      tree,
+      NodeType.HttpOperation,
+      mergedConfig.hideInternal,
+      mergedConfig.operationTitleAsURI,
+    );
   }
 
   const hasWebhookNodes = serviceNode.children.some(node => node.type === NodeType.HttpWebhook);
@@ -101,7 +110,14 @@ export const computeAPITree = (serviceNode: ServiceNode, config: ComputeAPITreeC
     });
 
     const { groups, ungrouped } = computeTagGroups<WebhookNode>(serviceNode, NodeType.HttpWebhook);
-    addTagGroupsToTree(groups, ungrouped, tree, NodeType.HttpWebhook, mergedConfig.hideInternal);
+    addTagGroupsToTree(
+      groups,
+      ungrouped,
+      tree,
+      NodeType.HttpWebhook,
+      mergedConfig.hideInternal,
+      mergedConfig.operationTitleAsURI,
+    );
   }
 
   let schemaNodes = serviceNode.children.filter(node => node.type === NodeType.Model);
@@ -115,7 +131,14 @@ export const computeAPITree = (serviceNode: ServiceNode, config: ComputeAPITreeC
     });
 
     const { groups, ungrouped } = computeTagGroups<SchemaNode>(serviceNode, NodeType.Model);
-    addTagGroupsToTree(groups, ungrouped, tree, NodeType.Model, mergedConfig.hideInternal);
+    addTagGroupsToTree(
+      groups,
+      ungrouped,
+      tree,
+      NodeType.Model,
+      mergedConfig.hideInternal,
+      mergedConfig.operationTitleAsURI,
+    );
   }
   return tree;
 };
@@ -157,7 +180,10 @@ const addTagGroupsToTree = <T extends GroupableNode>(
   tree: TableOfContentsItem[],
   itemsType: TableOfContentsGroup['itemsType'],
   hideInternal: boolean,
+  operationTitleAsURI: boolean,
 ) => {
+  const useURIAsName = itemsType == NodeType.HttpOperation && operationTitleAsURI;
+
   // Show ungrouped nodes above tag groups
   ungrouped.forEach(node => {
     if (hideInternal && isInternal(node)) {
@@ -166,7 +192,7 @@ const addTagGroupsToTree = <T extends GroupableNode>(
     tree.push({
       id: node.uri,
       slug: node.uri,
-      title: node.name,
+      title: useURIAsName ? node.uri : node.name,
       type: node.type,
       meta: isHttpOperation(node.data) || isHttpWebhookOperation(node.data) ? node.data.method : '',
     });
@@ -180,7 +206,7 @@ const addTagGroupsToTree = <T extends GroupableNode>(
       return {
         id: node.uri,
         slug: node.uri,
-        title: node.name,
+        title: useURIAsName ? node.uri : node.name,
         type: node.type,
         meta: isHttpOperation(node.data) || isHttpWebhookOperation(node.data) ? node.data.method : '',
       };

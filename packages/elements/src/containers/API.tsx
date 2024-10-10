@@ -92,6 +92,12 @@ export interface CommonAPIProps extends RoutingProps {
   hideInternal?: boolean;
 
   /**
+   * Changes the operation title to be the URI instead of the operation name
+   * @default false
+   */
+  operationTitleAsURI?: boolean;
+
+  /**
    * Hides export button from being displayed in overview page
    * @default false
    */
@@ -141,6 +147,7 @@ export const APIImpl: React.FC<APIProps> = props => {
     hideSchemas,
     hideInternal,
     hideExport,
+    operationTitleAsURI,
     tryItCredentialsPolicy,
     tryItCorsProxy,
     maxRefDepth,
@@ -231,6 +238,7 @@ export const APIImpl: React.FC<APIProps> = props => {
           hideSchemas={hideSchemas}
           hideInternal={hideInternal}
           hideExport={hideExport}
+          operationTitleAsURI={operationTitleAsURI}
           exportProps={exportProps}
           tryItCredentialsPolicy={tryItCredentialsPolicy}
           tryItCorsProxy={tryItCorsProxy}
@@ -249,6 +257,7 @@ export const APIImpl: React.FC<APIProps> = props => {
           hideSchemas={hideSchemas}
           hideInternal={hideInternal}
           hideExport={hideExport}
+          operationTitleAsURI={operationTitleAsURI}
           exportProps={exportProps}
           tryItCredentialsPolicy={tryItCredentialsPolicy}
           tryItCorsProxy={tryItCorsProxy}

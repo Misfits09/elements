@@ -125,5 +125,5 @@
       "@commitlint/config-conventional"
     ]
   },
-  "dependencies": {}
+  "packageManager": "yarn@1.22.1"
 }

@@ -9,7 +9,7 @@ import {
   TableOfContentsItem,
 } from '@stoplight/elements-core';
 import { ExtensionAddonRenderer } from '@stoplight/elements-core/components/Docs';
-import { Flex, Heading } from '@stoplight/mosaic';
+import { Flex, Heading, Input } from '@stoplight/mosaic';
 import { NodeType } from '@stoplight/types';
 import * as React from 'react';
 import { Link, Redirect, useLocation } from 'react-router-dom';
@@ -128,6 +128,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ serviceNode, logo, container, 
     }
   };
 
+  const [filter, setFilter] = React.useState('');
+
   return (
     <>
       <Flex ml={4} mb={5} alignItems="center">
@@ -138,8 +140,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ serviceNode, logo, container, 
         )}
         <Heading size={4}>{serviceNode.name}</Heading>
       </Flex>
+      <Flex ml={4} mb={5} alignItems="center">
+        <Input
+          appearance="default"
+          placeholder="Filter routes"
+          onMouseDown={e => e.currentTarget.focus()}
+          onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
+          flex={1}
+          bg="canvas-100"
+          rounded
+          value={filter}
+          onChange={e => {
+            setFilter(e.currentTarget.value);
+          }}
+        />
+      </Flex>
       <Flex flexGrow flexShrink overflowY="auto" direction="col">
-        <TableOfContents tree={tree} activeId={pathname} Link={Link} onLinkClick={handleTocClick} />
+        <TableOfContents tree={tree} activeId={pathname} Link={Link} onLinkClick={handleTocClick} filter={filter} />
       </Flex>
       <PoweredByLink source={serviceNode.name} pathname={pathname} packageType="elements" />
     </>

@@ -5,6 +5,7 @@ export type TableOfContentsProps = {
   maxDepthOpenByDefault?: number;
   externalScrollbar?: boolean;
   isInResponsiveMode?: boolean;
+  filter?: string;
   onLinkClick?(): void;
 };
 

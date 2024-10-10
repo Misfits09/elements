@@ -102,7 +102,11 @@ export const getQueryParams = ({
           throw Error();
         }
       } catch (e) {
-        throw new Error(`Cannot use param value "${value}". JSON array expected.`);
+        if (/^[\w\.-]+(,[\w\.-]+)*$/.test(value)) {
+          nested = value.split(',');
+        } else {
+          throw new Error(`Cannot use param value "${value}". JSON array expected.`);
+        }
       }
 
       if (explode) {

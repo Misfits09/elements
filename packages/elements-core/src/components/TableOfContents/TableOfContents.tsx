@@ -45,6 +45,7 @@ export const TableOfContents = React.memo<TableOfContentsProps>(
     maxDepthOpenByDefault,
     externalScrollbar = false,
     isInResponsiveMode = false,
+    filter = '',
     onLinkClick,
   }) => {
     const container = React.useRef<HTMLDivElement>(null);
@@ -95,6 +96,7 @@ export const TableOfContents = React.memo<TableOfContentsProps>(
                     onLinkClick={onLinkClick}
                     isInResponsiveMode={isInResponsiveMode}
                     makeSlugAbsoluteRoute={makeSlugAbsoluteRoute}
+                    filter={filter}
                   />
                 );
               })}
@@ -135,7 +137,8 @@ const GroupItem = React.memo<{
   makeSlugAbsoluteRoute?: boolean;
   maxDepthOpenByDefault?: number;
   onLinkClick?(): void;
-}>(({ item, depth, maxDepthOpenByDefault, isInResponsiveMode, makeSlugAbsoluteRoute, onLinkClick }) => {
+  filter?: string;
+}>(({ item, depth, maxDepthOpenByDefault, isInResponsiveMode, makeSlugAbsoluteRoute, onLinkClick, filter }) => {
   if (isExternalLink(item)) {
     return (
       <Box as="a" href={item.url} target="_blank" rel="noopener noreferrer" display="block">
@@ -156,6 +159,7 @@ const GroupItem = React.memo<{
         onLinkClick={onLinkClick}
         isInResponsiveMode={isInResponsiveMode}
         makeSlugAbsoluteRoute={makeSlugAbsoluteRoute}
+        filter={filter}
       />
     );
   } else if (isNode(item)) {
@@ -205,104 +209,135 @@ const Group = React.memo<{
   isInResponsiveMode?: boolean;
   makeSlugAbsoluteRoute?: boolean;
   onLinkClick?(): void;
-}>(({ depth, item, maxDepthOpenByDefault, isInResponsiveMode, makeSlugAbsoluteRoute, onLinkClick = () => {} }) => {
-  const activeId = React.useContext(ActiveIdContext);
-  const [isOpen, setIsOpen] = React.useState(() => isGroupOpenByDefault(depth, item, activeId, maxDepthOpenByDefault));
-  const hasActive = !!activeId && hasActiveItem(item.items, activeId);
-
-  // If maxDepthOpenByDefault changes, we want to update all the isOpen states (used in live preview mode)
-  React.useEffect(() => {
-    const openByDefault = isGroupOpenByDefault(depth, item, activeId, maxDepthOpenByDefault);
-    if (isOpen !== openByDefault) {
-      setIsOpen(openByDefault);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [depth, maxDepthOpenByDefault]);
-
-  // Expand group when it has the active item
-  React.useEffect(() => {
-    if (hasActive) {
-      setIsOpen(true);
-    }
-  }, [hasActive]);
-
-  const handleClick = (e: React.MouseEvent, forceOpen?: boolean) => {
-    setIsOpen(forceOpen ? true : !isOpen);
-  };
-
-  const meta = (
-    <Flex alignItems="center">
-      {isNodeGroup(item) && item.version && <Version value={item.version} />}
-      <Box
-        as={Icon}
-        icon={['fas', isOpen ? 'chevron-down' : 'chevron-right']}
-        color="muted"
-        fixedWidth
-        onClick={(e: React.MouseEvent) => {
-          // Don't propagate event when clicking icon
-          e.stopPropagation();
-          e.preventDefault();
-          handleClick(e);
-        }}
-      />
-    </Flex>
-  );
-
-  // Show the Group as active when group has active item and is closed
-  const showAsActive = hasActive && !isOpen;
-  let elem;
-  if (isNodeGroup(item)) {
-    elem = (
-      <Node
-        depth={depth}
-        item={item}
-        meta={meta}
-        showAsActive={showAsActive}
-        onClick={handleClick}
-        onLinkClick={onLinkClick}
-        isInResponsiveMode={isInResponsiveMode}
-        makeSlugAbsoluteRoute={makeSlugAbsoluteRoute}
-      />
+  filter?: string;
+}>(
+  ({
+    depth,
+    item,
+    maxDepthOpenByDefault,
+    isInResponsiveMode,
+    makeSlugAbsoluteRoute,
+    onLinkClick = () => {},
+    filter,
+  }) => {
+    const activeId = React.useContext(ActiveIdContext);
+    const [isOpen, setIsOpen] = React.useState(() =>
+      isGroupOpenByDefault(depth, item, activeId, maxDepthOpenByDefault),
     );
-  } else {
-    elem = (
-      <Item
-        isInResponsiveMode={isInResponsiveMode}
-        title={item.title}
-        meta={meta}
-        onClick={handleClick}
-        depth={depth}
-        isActive={showAsActive}
-        icon={
-          item.itemsType &&
-          NODE_GROUP_ICON[item.itemsType] && (
-            <Box as={Icon} color={NODE_GROUP_ICON_COLOR[item.itemsType]} icon={NODE_GROUP_ICON[item.itemsType]} />
-          )
-        }
-      />
+    const hasActive = !!activeId && hasActiveItem(item.items, activeId);
+
+    // If maxDepthOpenByDefault changes, we want to update all the isOpen states (used in live preview mode)
+    React.useEffect(() => {
+      const openByDefault = isGroupOpenByDefault(depth, item, activeId, maxDepthOpenByDefault);
+      if (isOpen !== openByDefault) {
+        setIsOpen(openByDefault);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [depth, maxDepthOpenByDefault]);
+
+    // Expand group when it has the active item
+    React.useEffect(() => {
+      if (hasActive) {
+        setIsOpen(true);
+      }
+    }, [hasActive]);
+
+    const handleClick = (e: React.MouseEvent, forceOpen?: boolean) => {
+      setIsOpen(forceOpen ? true : !isOpen);
+    };
+
+    const meta = (
+      <Flex alignItems="center">
+        {isNodeGroup(item) && item.version && <Version value={item.version} />}
+        <Box
+          as={Icon}
+          icon={['fas', isOpen ? 'chevron-down' : 'chevron-right']}
+          color="muted"
+          fixedWidth
+          onClick={(e: React.MouseEvent) => {
+            // Don't propagate event when clicking icon
+            e.stopPropagation();
+            e.preventDefault();
+            handleClick(e);
+          }}
+        />
+      </Flex>
     );
-  }
 
-  return (
-    <>
-      {elem}
+    // Show the Group as active when group has active item and is closed
+    const showAsActive = hasActive && !isOpen;
+    let elem;
+    if (isNodeGroup(item)) {
+      elem = (
+        <Node
+          depth={depth}
+          item={item}
+          meta={meta}
+          showAsActive={showAsActive}
+          onClick={handleClick}
+          onLinkClick={onLinkClick}
+          isInResponsiveMode={isInResponsiveMode}
+          makeSlugAbsoluteRoute={makeSlugAbsoluteRoute}
+        />
+      );
+    } else {
+      elem = (
+        <Item
+          isInResponsiveMode={isInResponsiveMode}
+          title={item.title}
+          meta={meta}
+          onClick={handleClick}
+          depth={depth}
+          isActive={showAsActive}
+          icon={
+            item.itemsType &&
+            NODE_GROUP_ICON[item.itemsType] && (
+              <Box as={Icon} color={NODE_GROUP_ICON_COLOR[item.itemsType]} icon={NODE_GROUP_ICON[item.itemsType]} />
+            )
+          }
+        />
+      );
+    }
 
-      {isOpen &&
-        item.items.map((groupItem, key) => {
-          return (
-            <GroupItem
-              key={key}
-              item={groupItem}
-              depth={depth + 1}
-              onLinkClick={onLinkClick}
-              isInResponsiveMode={isInResponsiveMode}
-              makeSlugAbsoluteRoute={makeSlugAbsoluteRoute}
-            />
-          );
-        })}
-    </>
-  );
-});
+    let filteredItems = item.items.filter(
+      item =>
+        isGroup(item) ||
+        (filter ?? '') == '' ||
+        (filter !== undefined && item.title.toLowerCase().includes(filter.toLowerCase())),
+    );
+
+    if (filteredItems.length === 0) {
+      return null;
+    }
+
+    return (
+      <>
+        {elem}
+
+        {isOpen &&
+          filteredItems
+            .filter(
+              item =>
+                isGroup(item) ||
+                (filter ?? '') == '' ||
+                (filter !== undefined && item.title.toLowerCase().includes(filter.toLowerCase())),
+            )
+            .map((groupItem, key) => {
+              return (
+                <GroupItem
+                  key={key}
+                  item={groupItem}
+                  depth={depth + 1}
+                  onLinkClick={onLinkClick}
+                  isInResponsiveMode={isInResponsiveMode}
+                  makeSlugAbsoluteRoute={makeSlugAbsoluteRoute}
+                />
+              );
+            })}
+      </>
+    );
+  },
+);
 Group.displayName = 'Group';
 
 const Item = React.memo<{

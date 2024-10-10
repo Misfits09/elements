@@ -1,6 +1,6 @@
 {
-  "name": "@stoplight/elements",
-  "version": "8.4.6",
+  "name": "@fifteen/stoplight-elements",
+  "version": "8.4.6-fifteen3",
   "description": "UI components for composing beautiful developer documentation.",
   "keywords": [],
   "sideEffects": [
